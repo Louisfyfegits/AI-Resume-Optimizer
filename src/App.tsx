@@ -33,20 +33,53 @@ export default function App(): React.ReactElement {
             {
               parts: [
                 {
-                 text: `Optimize the following resume for the job description provided.
-                  Tone: ${tone}.
-                  Resume: ${resumeText}.
-                  Job Description: ${jobDescription}
-                  Rewrite the resume to match keywords from the job description in personal description and career goals, 
-                  remove irrelevant knowledge, and change order of skills from most relevant to least relevant left to right,
-                  and pick the best three most relevant projects to highlight in the resume. Do Not Use the company name in the resume.
+                  text: `You are editing a resume for a specific job application. Follow these rules with zero exceptions.
 
-                  IMPORTANT: Return ONLY the final optimized resume text itself. Do not include any explanation, 
-                  summary of changes, rationale, headers like "Summary of Changes", aswell as NO markdown formatting like ** or #, 
-                  match the exact formatting of provided original resume. AND NO commentary before or after the resume. Output the resume text only, starting directly with 
-                  the candidate's name.`
-                }
-              ]
+                Original resume: <Original Resume>${resumeText} </Original Resume>
+                Job description: <Job Description>${jobDescription} </Job Description>
+                Tone: <Tone>${tone} </Tone>
+
+                You are allowed to change ONLY these following four things. Every other section must be copied
+                character-for-character, unchanged — same wording, same punctuation, same line breaks,
+                same section headers, same order of sections. 
+              
+
+                1. PROJECTS: From the projects listed under "Relevant Project Experience," keep only the
+                  3 most relevant to the job description. Remove the rest entirely. Order the 3 kept
+                  projects from most to least relevant. Do not reword the project titles or descriptions —
+                  only decide which 3 to keep and what order to list them in.
+
+                2. SKILLS: Within each existing skills category (e.g. "Programming Languages,"
+                  "Frameworks & Libraries"), reorder the items from most to least relevant to the job
+                  description. Do not add, remove, rename, or reword any category or any individual skill —
+                  only reorder items within their existing category.
+
+                3. CAREER OBJECTIVE (or equivalent personal-statement section): Rewrite this section so it
+                  naturally incorporates 2-4 keywords or phrases from the job description. Keep it roughly
+                  the same length as the original.
+
+                4. CORE ATTRIBUTES (or equivalent section describing soft skills / personal qualities):
+                  Rewrite this section to align with what the job description is looking for. You may
+                  rephrase the reasoning and examples given to better connect them to the job description's
+                  priorities, as long as you stay grounded in the general kind of experience already
+                  described in the original (e.g. if the original mentions teamwork through group projects,
+                  you can rephrase or reframe that, but don't invent an entirely unrelated type of
+                  experience). Keep the same number of attributes/bullets as the original.
+
+                DO NOT, under any circumstances:
+                - Change any wording in Education, Professional Experience, or Additional Experience
+                  sections — copy these sections exactly as given, word for word.
+                - Add any company, date, or skill not present in the original resume.
+                - Use slang, filler phrases, or conversational asides (e.g. never write "or something,"
+                  "kind of," "or smt").
+                - Write sentence fragments — every sentence must be complete and grammatically correct.
+                - Add markdown formatting (no **, no #).
+                - Add commentary, explanations, or a summary of what you changed.
+
+                OUTPUT FORMAT:
+                Return only the final resume text, starting directly with the candidate's name. Nothing else.`
+                              }
+                            ]
             }
           ]
         })
@@ -118,8 +151,9 @@ return (
         onClick={async () => { await handleOptimizeResume(); }}
         disabled={loading}
         className="mt-4 w-full rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300
-                   text-white font-semibold py-2.5 transition-colors"
-      >
+           text-white font-semibold py-2.5 transition-colors
+           flex items-center justify-center gap-2"
+      > {loading && <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> }
         {loading ? 'Optimizing...' : 'Optimize Resume'}
       </button>
 
