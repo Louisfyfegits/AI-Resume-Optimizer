@@ -12,6 +12,10 @@ export default function App(): React.ReactElement {
   const [error, setError] = useState<string | null>(null); //error state
   const [tone, setTone] = useState<ToneType>('Standard'); //tone of the optimized resume
 
+  const ResumeWordCount: number = countWords(resumeText); 
+  const OptimizedResumeWordCount: number = countWords(optimizedResume);
+
+
   const handleOptimizeResume = async (): Promise<void> => {
     setLoading(true);
     setError(null); //clear any previous errors
@@ -33,13 +37,13 @@ export default function App(): React.ReactElement {
                   Tone: ${tone}.
                   Resume: ${resumeText}.
                   Job Description: ${jobDescription}
-                  Rewrite the resume to match keywords from the job description in personal description and career goals,
+                  Rewrite the resume to match keywords from the job description in personal description and career goals, 
                   remove irrelevant knowledge, and change order of skills from most relevant to least relevant left to right,
-                  and pick the best three most relevant projects to highlight in the resume.
+                  and pick the best three most relevant projects to highlight in the resume. Do Not Use the company name in the resume.
 
                   IMPORTANT: Return ONLY the final optimized resume text itself. Do not include any explanation, 
-                  summary of changes, rationale, headers like "Summary of Changes", markdown formatting like ** or #, 
-                  or any commentary before or after the resume. Output the resume text only, starting directly with 
+                  summary of changes, rationale, headers like "Summary of Changes", aswell as NO markdown formatting like ** or #, 
+                  match the exact formatting of provided original resume. AND NO commentary before or after the resume. Output the resume text only, starting directly with 
                   the candidate's name.`
                 }
               ]
@@ -48,15 +52,26 @@ export default function App(): React.ReactElement {
         })
       });
 
-     const data = await response.json();
-    setOptimizedResume(data.candidates[0].content.parts[0].text); //firstResponse.textContent.string
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error.message || 'The API returned an error.');
+    }
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error('No response was generated — the request may have been blocked.');
+    }
+    const text = data.candidates[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      throw new Error('The response had no text content.');
+    }
+    setOptimizedResume(text); //firstResponse.textContent.string
 
     } catch (err) {setError("" + err)}
     setLoading(false); //set loading to false when done
   }
 
 return (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 max-w-7xl mx-auto">
+  <div className="grid grid-cols-1 md:grid-cols-[2fr_1.3fr_2fr] gap-6 p-6 max-w-[1600px] mx-auto">
     <h1 className="md:col-span-3 text-3xl font-bold text-stone-800 mb-2">Resume Optimizer</h1>
 
     {/* Original Resume - Claude color scheme */}
@@ -69,8 +84,9 @@ return (
         className="flex-1 min-h-[28rem] w-full resize-none rounded-lg border border-orange-200 bg-white p-4
                    text-[13px] leading-relaxed text-stone-800 placeholder-stone-400
                    focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent
-                   [font-size:clamp(10px,1.1vw,14px)]"
+                   [font-size:clamp(6px,1.1vw,10px)]"
       />
+      <label className="text-[9px] text-orange-300 mb-1 mt-1"> Words: {ResumeWordCount}</label>
     </div>
 
     {/* Job Description + Controls - Grey */}
@@ -83,7 +99,7 @@ return (
         className="flex-1 min-h-[20rem] w-full resize-none rounded-lg border border-stone-300 bg-white p-4
                    text-[13px] leading-relaxed text-stone-800 placeholder-stone-400
                    focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent
-                   [font-size:clamp(10px,1.1vw,14px)]"
+                   [font-size:clamp(6px,1.1vw,10px)]"
       />
 
       <label className="text-sm font-semibold text-stone-700 mt-4 mb-2">Tone</label>
@@ -124,10 +140,16 @@ return (
         className="flex-1 min-h-[28rem] w-full resize-none rounded-lg border border-orange-200 bg-white p-4
                    text-[13px] leading-relaxed text-stone-800 placeholder-stone-400
                    focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent
-                   [font-size:clamp(10px,1.1vw,14px)]"
+                   [font-size:clamp(6px,1.1vw,10px)]"
       />
+      <label className="text-[9px] text-orange-300 mb-1 mt-1"> Words: {OptimizedResumeWordCount}</label>
     </div>
   </div>
 );
+}
+
+function countWords(text: string): number {
+  const trimmed = text.trim();
+  return trimmed === '' ? 0 : trimmed.split(/\s+/).length; //split by whitespace and count the number of words
 }
 
